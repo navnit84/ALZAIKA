@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Al Zaika Biryani — Order Online</title>
+  <meta name="description" content="Order authentic biryani from Al Zaika Biryani. Fast delivery, hot deals, secure checkout." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="server.js">
+  <style>
+    :root{
+      --brand:#7b3f00;/* spice brown */
+      --brand-2:#e09d2d;/* saffron */
+      --bg:#fffaf2;/* warm parchment */
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --success:#16a34a;
+      --danger:#dc2626;
+      --card:#ffffff;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";color:var(--ink);background:var(--bg)}
+    img{max-width:100%;display:block}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1180px;margin:0 auto;padding:0 16px}
+    header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #eee}
+    .nav{display:flex;align-items:center;gap:16px;justify-content:space-between;padding:10px 0}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo img{width:52px;height:52px;object-fit:contain;border-radius:12px;box-shadow:var(--shadow)}
+    .logo h1{font-size:20px;letter-spacing:.5px;margin:0;font-weight:800}
+    .pill{border:1px solid #eee;border-radius:999px;padding:8px 14px;background:#fff}
+    .search{display:flex;align-items:center;gap:10px;flex:1;max-width:560px;border:1px solid #eee;border-radius:999px;padding:8px 12px;background:#fff}
+    .search input{border:none;outline:0;flex:1;font-size:14px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid transparent;cursor:pointer;font-weight:600}
+    .btn.primary{background:var(--brand);color:#fff}
+    .btn.light{background:#fff;border-color:#eee}
+    .btn.icon{padding:10px}
+    .cart-btn{position:relative}
+    .cart-count{position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:999px;font-size:11px;padding:2px 6px}
+
+    .hero{background:linear-gradient(180deg, #fff7ea, #fff);border-bottom:1px solid #f2e8d9}
+    .hero-wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center;padding:28px 0}
+    .hero h2{font-size:38px;margin:0 0 10px}
+    .hero p{color:var(--muted);margin:0 0 18px}
+    .hero .badges{display:flex;gap:10px;flex-wrap:wrap}
+    .badge{background:#fff;border:1px dashed var(--brand-2);color:#7a4b10;padding:8px 12px;border-radius:12px;font-weight:700}
+
+    .filters{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+    .chip{padding:8px 12px;border:1px solid #eee;border-radius:999px;background:#fff;cursor:pointer}
+    .chip.active{border-color:var(--brand);color:var(--brand);font-weight:700}
+
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+    .card .media{position:relative;height:180px;background:#f6f6f6}
+    .veg{width:10px;height:10px;border-radius:2px;border:1px solid #236c2b;background:#1ec94c;display:inline-block;margin-right:6px}
+    .non-veg{width:10px;height:10px;border-radius:2px;border:1px solid #a31616;background:#d62828;display:inline-block;margin-right:6px}
+    .card .body{padding:14px;display:flex;flex-direction:column;gap:6px}
+    .price{font-weight:800}
+    .strike{color:#9ca3af;text-decoration:line-through;margin-left:6px;font-weight:600}
+    .qty{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .qty button{width:28px;height:28px;border-radius:8px;border:1px solid #eee;background:#fff;cursor:pointer}
+
+    .sticky-bar{position:sticky;top:64px;background:#fff;border:1px solid #eee;border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;justify-content:space-between;margin:14px 0}
+
+    /* Cart Drawer */
+    .drawer{position:fixed;right:-420px;top:0;height:100vh;width:420px;background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.1);transition:.3s ease;z-index:60;display:flex;flex-direction:column}
+    .drawer.open{right:0}
+    .drawer header{position:sticky;top:0}
+    .drawer .content{padding:16px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:12px}
+    .cart-row{display:flex;gap:10px;align-items:center;border:1px solid #f2f2f2;border-radius:12px;padding:10px}
+    .cart-row img{width:64px;height:64px;border-radius:10px;object-fit:cover}
+    .row-right{display:flex;flex-direction:column;gap:6px;flex:1}
+
+    .coupon{display:flex;gap:10px}
+    .coupon input{flex:1;border:1px dashed var(--brand);border-radius:10px;padding:10px}
+
+    .totals{border-top:1px dashed #eee;padding-top:10px;margin-top:10px;display:flex;flex-direction:column;gap:6px}
+    .totals .line{display:flex;justify-content:space-between}
+    .totals .line.sum{font-weight:800}
+
+    .footer{margin:40px 0;color:var(--muted);text-align:center}
+
+    /* Checkout modal */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:70}
+    .modal.open{display:flex}
+    .sheet{background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:16px;max-width:720px;width:92%}
+    .form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form .full{grid-column:1 / -1}
+    .form input, .form select, .form textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
+
+    /* Responsive */
+    @media (max-width: 1024px){
+      .grid{grid-template-columns:repeat(2,1fr)}
+      .drawer{width:380px}
+      .hero-wrap{grid-template-columns:1fr}
+    }
+    @media (max-width: 640px){
+      .grid{grid-template-columns:1fr}
+      .search{display:none}
+      .drawer{width:100vw}
+      .form{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="logo">
+        <!-- If the image fails, place logo.png in the same folder -->
+        <img id="siteLogo" alt="Al Zaika Biryani logo" src="ChatGPT Image Aug 14, 2025, 12_12_17 PM.png" onerror="this.onerror=null;this.src='logo.png'">
+        <h1>Al Zaika Biryani</h1>
+        <span class="pill" title="City">Bhagalpur • Patna • Munger</span>
+      </div>
+      <label class="search" aria-label="Search menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35" stroke="#888" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="11" r="7" stroke="#888" stroke-width="2"/></svg>
+        <input id="searchInput" placeholder="Search biryani, kebab, dessert…" />
+      </label>
+      <button class="btn light" id="toggleMode">🌙</button>
+      <button class="btn primary cart-btn" id="openCart">🛒 Cart <span class="cart-count" id="cartCount">0</span></button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-wrap">
+      <div>
+        <h2>Royal biryani, delivered hot & fast</h2>
+        <p>Slow-cooked dum biryanis, curated kebabs and sides. Order now and enjoy exclusive app‑only offers.</p>
+        <div class="badges">
+          <span class="badge">WELCOME50: 50% off (max ₹150)</span>
+          <span class="badge">ALZAIKA100: ₹100 off > ₹599</span>
+          <span class="badge">FREEDRINK: Free Mint Lassi</span>
+        </div>
+      </div>
+      <div>
+        <img alt="Biryani bowl" src="https://images.unsplash.com/photo-1604908177093-cb47543b9c13?q=80&w=1200&auto=format&fit=crop" style="border-radius:20px;box-shadow:var(--shadow)">
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="sticky-bar">
+      <div class="filters" id="filters"></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <label class="pill" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="toggleVeg"> Veg only</label>
+        <select class="pill" id="sortSelect" title="Sort">
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="rating">Top Rated</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid" id="menuGrid"></div>
+    <p class="footer">© <span id="year"></span> Al Zaika Biryani. For demo use — connect to a backend for live orders & payments.</p>
+  </div>
+
+  <!-- Cart Drawer -->
+  <aside class="drawer" id="cartDrawer" aria-hidden="true">
+    <header class="container nav">
+      <strong>🧾 Your Cart</strong>
+      <button class="btn icon light" id="closeCart">✖</button>
+    </header>
+    <div class="content">
+      <div id="cartItems"></div>
+      <div class="coupon">
+        <input id="couponInput" placeholder="Have a coupon?" />
+        <button class="btn light" id="applyCoupon">Apply</button>
+      </div>
+      <div id="couponMsg" style="font-size:13px;color:var(--muted)"></div>
+      <div class="totals" id="totals"></div>
+      <button class="btn primary" id="checkoutBtn">Proceed to Checkout</button>
+    </div>
+  </aside>
+
+  <!-- Checkout Modal -->
+  <div class="modal" id="checkoutModal" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 style="margin:0">Checkout</h3>
+        <button class="btn icon light" id="closeModal">✖</button>
+      </div>
+      <div class="form">
+        <input class="full" id="name" placeholder="Full name" />
+        <input id="phone" placeholder="Phone" />
+        <input id="email" placeholder="Email (optional)" />
+        <textarea class="full" id="address" rows="3" placeholder="Delivery address"></textarea>
+        <select id="city">
+          <option>Dubai</option><option>Abu Dhabi</option><option>Sharjah</option>
+        </select>
+        <select id="method">
+          <option value="delivery">Delivery</option>
+          <option value="pickup">Pick-up</option>
+        </select>
+      </div>
+      <div class="totals" id="confirmTotals" style="margin-top:12px"></div>
+      <button class="btn primary" id="placeOrder" style="width:100%;margin-top:10px">Place order</button>
+    </div>
+  </div>
+
+  <script>
+  // ====== Logo data URL (fallbacks to logo.png if not available) ======
+  (function(){
+    const dataUrl = 'logo.png';
+    const img = document.getElementById('siteLogo');
+    if(dataUrl && dataUrl.startsWith('data:image')) img.src = dataUrl;
+  })();
+
+  // ====== Demo Data ======
+  const categories = [
+    { id:'all', name:'All' },
+    { id:'signature', name:'Signature' },
+    { id:'chicken', name:'Chicken' },
+    { id:'mutton', name:'Mutton' },
+    { id:'seafood', name:'Seafood' },
+    { id:'veg', name:'Veg' },
+    { id:'kebab', name:'Kebab' },
+    { id:'dessert', name:'Desserts' },
+    { id:'beverage', name:'Beverages' }
+  ];
+
+  const menu = [
+    {id:'ch1',name:'Hyderabadi Chicken Dum Biryani',price:299,cut:349,cat:['signature','chicken'],veg:false,rating:4.7,img:'https://images.unsplash.com/photo-1625944528703-209814e0b86b?q=80&w=1200&auto=format&fit=crop'},
+    {id:'mt1',name:'Nalli Gosht Biryani',price:399,cut:459,cat:['signature','mutton'],veg:false,rating:4.8,img:'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1200&auto=format&fit=crop'},
+    {id:'vg1',name:'Veg Dum Biryani',price:249,cut:289,cat:['veg','signature'],veg:true,rating:4.5,img:'https://images.unsplash.com/photo-1604908177093-cb47543b9c13?q=80&w=1200&auto=format&fit=crop'},
+    {id:'ch2',name:'Chicken Tikka Biryani',price:319,cat:['chicken'],veg:false,rating:4.4,img:'https://images.unsplash.com/photo-1625944528703-209814e0b86b?q=80&w=1200&auto=format&fit=crop'},
+    {id:'sf1',name:'Prawn Biryani',price:359,cat:['seafood'],veg:false,rating:4.3,img:'https://images.unsplash.com/photo-1604908177093-cb47543b9c13?q=80&w=1200&auto=format&fit=crop'},
+    {id:'kb1',name:'Seekh Kebab (6 pcs)',price:229,cat:['kebab'],veg:false,rating:4.2,img:'https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?q=80&w=1200&auto=format&fit=crop'},
+    {id:'kb2',name:'Paneer Tikka (6 pcs)',price:219,cat:['kebab','veg'],veg:true,rating:4.2,img:'https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=1200&auto=format&fit=crop'},
+    {id:'ds1',name:'Gulab Jamun (2 pcs)',price:99,cat:['dessert','veg'],veg:true,rating:4.6,img:'https://images.unsplash.com/photo-1631442300535-27fb37177e59?q=80&w=1200&auto=format&fit=crop'},
+    {id:'bv1',name:'Mint Lassi',price:89,cat:['beverage','veg'],veg:true,rating:4.1,img:'https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=1200&auto=format&fit=crop'},
+  ];
+
+  const coupons = {
+    'WELCOME50': { type:'percent', value:50, max:150, min:0, note:'50% off up to ₹150' },
+    'ALZAIKA100': { type:'flat', value:100, min:599, note:'₹100 off on orders above ₹599' },
+    'FREEDRINK': { type:'freeItem', itemId:'bv1', note:'Free Mint Lassi added' },
+  };
+
+  // ====== State ======
+  const state = {
+    filter:'all',
+    vegOnly:false,
+    sort:'featured',
+    q:'',
+    cart: JSON.parse(localStorage.getItem('az_cart')||'{}'),
+    coupon: localStorage.getItem('az_coupon') || ''
+  };
+
+  const el = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  // ====== Helpers ======
+  function money(n){return '₹'+n.toFixed(0)}
+  function subtotal(cart){
+    return Object.entries(cart).reduce((s,[id,qty])=>{
+      const item = menu.find(x=>x.id===id); return s + (item? item.price*qty:0);
+    },0);
+  }
+
+  function computeTotals(){
+    const sub = subtotal(state.cart);
+    let discount = 0; let notes=[];
+    let freeItemId = null;
+    const delivery = sub>499 ? 0 : 29;
+    const tax = Math.round(sub*0.05);
+    if(state.coupon){
+      const c = coupons[state.coupon.toUpperCase()];
+      if(c){
+        if(c.type==='percent'){
+          const raw = sub * (c.value/100); discount = Math.min(raw, c.max||raw); notes.push(c.note);
+        } else if(c.type==='flat' && sub>= (c.min||0)){
+          discount = c.value; notes.push(c.note);
+        } else if(c.type==='freeItem'){
+          freeItemId = c.itemId; notes.push(c.note);
+        }
+      }
+    }
+    const total = Math.max(0, sub + tax + delivery - discount);
+    return {sub, tax, delivery, discount, total, notes, freeItemId};
+  }
+
+  function persist(){
+    localStorage.setItem('az_cart',JSON.stringify(state.cart));
+    localStorage.setItem('az_coupon',state.coupon||'');
+  }
+
+  // ====== UI Builders ======
+  function renderFilters(){
+    const wrap = el('#filters');
+    wrap.innerHTML = categories.map(c=>`<button class="chip ${state.filter===c.id?'active':''}" data-id="${c.id}">${c.name}</button>`).join('');
+  }
+
+  function renderMenu(){
+    const grid = el('#menuGrid');
+    let items = menu.slice();
+
+    // Filter by category
+    if(state.filter!=='all') items = items.filter(x=>x.cat.includes(state.filter));
+
+    // Veg only
+    if(state.vegOnly) items = items.filter(x=>x.veg);
+
+    // Search query
+    if(state.q){
+      const q = state.q.toLowerCase();
+      items = items.filter(x=>x.name.toLowerCase().includes(q));
+    }
+
+    // Sort
+    if(state.sort==='price-asc') items.sort((a,b)=>a.price-b.price);
+    if(state.sort==='price-desc') items.sort((a,b)=>b.price-a.price);
+    if(state.sort==='rating') items.sort((a,b)=>b.rating-a.rating);
+
+    grid.innerHTML = items.map(item=>{
+      const inCart = state.cart[item.id]||0;
+      return `
+      <article class="card">
+        <div class="media"><img alt="${item.name}" src="${item.img}" style="width:100%;height:100%;object-fit:cover"></div>
+        <div class="body">
+          <div style="display:flex;gap:10px;align-items:center">
+            <span class="${item.veg?'veg':'non-veg'}"></span>
+            <h3 style="margin:0;font-size:16px;flex:1">${item.name}</h3>
+            <span title="rating">⭐ ${item.rating}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="price">${money(item.price)}</div>
+            ${item.cut?`<div class="strike">${money(item.cut)}</div>`:''}
+            <div class="qty">
+              <button aria-label="decrease" onclick="updateQty('${item.id}',-1)">−</button>
+              <strong id="qty_${item.id}">${inCart}</strong>
+              <button aria-label="increase" onclick="updateQty('${item.id}',1)">+</button>
+            </div>
+          </div>
+        </div>
+      </article>`
+    }).join('');
+  }
+
+  function renderCart(){
+    const itemsEl = el('#cartItems');
+    const rows = Object.entries(state.cart).map(([id,qty])=>{
+      const item = menu.find(x=>x.id===id); if(!item) return '';
+      return `
+      <div class="cart-row">
+        <img src="${item.img}" alt="${item.name}">
+        <div class="row-right">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>${item.name}</strong>
+            <span>${money(item.price*qty)}</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <small>${item.veg? 'Veg' : 'Non‑veg'}</small>
+            <div class="qty" style="margin-left:auto">
+              <button onclick="updateQty('${id}',-1)">−</button>
+              <strong>${qty}</strong>
+              <button onclick="updateQty('${id}',1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>`
+    }).join('');
+    itemsEl.innerHTML = rows || '<p>Your cart is empty. Add some biryani! 🍛</p>';
+
+    // Totals
+    const t = computeTotals();
+    el('#totals').innerHTML = `
+      <div class="line"><span>Subtotal</span><span>${money(t.sub)}</span></div>
+      <div class="line"><span>Tax (5%)</span><span>${money(t.tax)}</span></div>
+      <div class="line"><span>Delivery</span><span>${t.delivery? money(t.delivery): 'Free'}</span></div>
+      <div class="line"><span>Discount</span><span>− ${money(t.discount)}</span></div>
+      ${t.notes.length? `<small>${t.notes.join(' · ')}</small>`: ''}
+      <div class="line sum"><span>Total</span><span>${money(t.total)}</span></div>
+    `;
+
+    // Cart count
+    const count = Object.values(state.cart).reduce((a,b)=>a+b,0);
+    el('#cartCount').textContent = count;
+  }
+
+  function updateQty(id,delta){
+    state.cart[id] = Math.max(0, (state.cart[id]||0) + delta);
+    if(state.cart[id]===0) delete state.cart[id];
+    persist();
+    renderMenu();
+    renderCart();
+  }
+
+  // ====== Events ======
+  function wire(){
+    // Filters
+    el('#filters').addEventListener('click',e=>{
+      const b = e.target.closest('.chip'); if(!b) return;
+      state.filter = b.dataset.id; renderFilters(); renderMenu();
+    });
+
+    // Veg toggle
+    el('#toggleVeg').addEventListener('change',e=>{state.vegOnly=e.target.checked; renderMenu();});
+
+    // Sort
+    el('#sortSelect').addEventListener('change',e=>{state.sort=e.target.value; renderMenu();});
+
+    // Search
+    el('#searchInput').addEventListener('input',e=>{state.q=e.target.value; renderMenu();});
+
+    // Cart drawer
+    el('#openCart').addEventListener('click',()=>{el('#cartDrawer').classList.add('open');});
+    el('#closeCart').addEventListener('click',()=>{el('#cartDrawer').classList.remove('open');});
+
+    // Coupons
+    el('#applyCoupon').addEventListener('click',()=>{
+      const code = el('#couponInput').value.trim().toUpperCase();
+      if(!code){state.coupon=''; el('#couponMsg').textContent='Coupon cleared.'; persist(); renderCart(); return;}
+      const c = coupons[code];
+      if(!c){el('#couponMsg').textContent='Invalid coupon.'; return;}
+      state.coupon = code; persist();
+      el('#couponMsg').textContent = 'Applied: '+ (c.note||code);
+      // Auto add free item for FREEDRINK
+      const t = computeTotals();
+      if(t.freeItemId && !state.cart[t.freeItemId]){ state.cart[t.freeItemId]=1; }
+      renderCart();
+    });
+
+    // Checkout
+    el('#checkoutBtn').addEventListener('click',()=>{
+      if(!Object.keys(state.cart).length){alert('Cart is empty');return;}
+      const t = computeTotals();
+      el('#confirmTotals').innerHTML = el('#totals').innerHTML;
+      el('#checkoutModal').classList.add('open');
+    });
+    el('#closeModal').addEventListener('click',()=> el('#checkoutModal').classList.remove('open'));
+    el('#placeOrder').addEventListener('click',()=>{
+      // Dummy order placement — send to backend in production
+      const orderId = 'AZ'+Math.floor(Math.random()*1e6).toString().padStart(6,'0');
+      alert('Order '+orderId+' placed! You will receive updates via SMS/Email.');
+      state.cart = {}; state.coupon=''; persist();
+      renderMenu(); renderCart(); el('#checkoutModal').classList.remove('open'); el('#cartDrawer').classList.remove('open');
+    });
+
+    // Theme toggle
+    el('#toggleMode').addEventListener('click',()=>{
+      document.body.classList.toggle('dark');
+    });
+  }
+
+  // Dark theme (simple)
+  const darkCss = document.createElement('style');
+  darkCss.textContent = `
+    body.dark{background:#0b0f14;color:#e5e7eb}
+    body.dark header, body.dark .sticky-bar, body.dark .drawer{background:#0f141a;border-color:#1f2937}
+    body.dark .card, body.dark .sheet{background:#0f141a;border-color:#1f2937}
+    body.dark .pill, body.dark .btn.light, body.dark .search input, body.dark .coupon input{background:#0f141a;color:#e5e7eb;border-color:#1f2937}
+  `;
+  document.head.appendChild(darkCss);
+
+  // ====== Boot ======
+  (function init(){
+    el('#year').textContent = new Date().getFullYear();
+    // Filters
+    renderFilters();
+    // Persisted coupon
+    if(state.coupon){ el('#couponInput').value = state.coupon; }
+    // Render
+    renderMenu();
+    renderCart();
+    wire();
+  })();
+  </script>
+</body>
+</html>
